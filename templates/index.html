@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock Paper Scissors</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italiana&display=swap" rel="stylesheet">
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"> -->
+
+    <style>
+        body {
+            /* background:
+                linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.55)), */
+            background-image: url("static/assets/bg.jpg");
+            font-family: "Italiana", sans-serif;
+            /* color: 002916; */
+        }
+        .header {
+            height:80%;
+            width:auto;
+
+        }
+        #whole {
+            width:820px;
+            margin:40px auto;
+            background:#6b5a60;
+            border:4px ridge #2b0000;
+            /* box-shadow: 
+                0 0 30px rgba(120,0,0,.6),
+                inset 0 0 20px rgba(0,0,0,.6); */
+            padding:18px;
+            position: relative;
+        }
+        div {
+
+            background-color: #3E0505;
+            color: #002916;
+        }
+        #modal {
+            position:fixed;
+            inset:0;
+            background: #3E0505;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            z-index:999;
+            top: 0;
+            left: 0;
+            width: 80%;
+            height: 80%;
+        }
+        .hidden {
+            display:none !important;
+        }
+        #modal {
+            width:520px;
+            background: #5a0000;
+            border:4px ridge #2b0000;
+            padding:20px;
+            text-align:center;
+            box-shadow: 0 0 40px rgba(255,0,0,.4)
+        }
+        .modal img {
+            width:100px;
+            border:2px solid #2b0000;
+        }
+        #endResult {
+            color:#c98d8d;
+            margin-bottom:10px;
+        }
+        #endCaption {
+            font-size:24px;
+            color:#f2c9c9;
+        }
+        button {
+            background:#4a0000;
+            border:2px outset #7a1f36;
+            color:#f0c9cf;
+            font-family: "Italiana", serif;
+            font-size:18px;
+            cursor:pointer;
+        }
+        button:hover {
+            background:#6e0011;
+            transform:translateY(-1px);
+        }
+        #video {
+            width:340px;
+            border:3px solid #4b0000;
+            filter: 
+                contrast(1.1)
+                saturate(.7)
+                brightness(.8);
+            image-rendering: pixelated;
+            box-shadow:0 0 20px rgba(255,0,0,.2)
+        }
+        h1 {
+            font-size:48px;
+            text-align:center;
+            color:#5c0000;
+            letter-spacing:2px;
+        }
+        h2 {
+            font-size:16px;
+            text-align:center;
+            margin-top:-18px;
+            color:#7a1f36;
+            font-style:italic;
+        }
+    </style>
+</head>
+<body>
+    <div id="whole">
+        <div id="header">
+            <h1>Rock Paper... SCISSORS 👩‍❤️‍💋‍👩 👩‍❤️‍💋‍👩✂️</h1>
+            <h2 id="modalTrigger">A twist on a classic game</h2>
+            <img src="/static/assets/toxic-yuri.jpg" style="display:none;">
+        </div>
+   
+    <!-- #<h>Rock paper... SCISSOR sisters</h>"
+    # return "<p>Ready to play?</p>" -->
+        <button id="start">Start</button>
+        <button id="capture" style="display: none">Capture</button>
+        <span id="countdown" style="display: none">3</span>
+        <video id="video" autoplay playsinline style="display:none; width:300px;"></video>
+        <!-- data = {'message': 'Webcam access', 'status': 'success'} -->
+        <canvas style= "display:none; width:640; height:480;" id="canvas" ></canvas>
+        <p>You chose... <span id="userChoice"></span></p>
+        <p>The AI chose... <span id="choice"></span></p>
+        <span id="result"></span>
+        <!-- <iframe data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/track/4wH4dJgrsxONID6KS2tDQM?utm_source=generator" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="position:sticky; bottom:0;"></iframe> -->
+    </div>
+    <div id="modal" class="hidden">
+        <h1 id="endResult"></h1>
+        <img id="endImg" src="">
+        <p id="endCaption"></p>
+        <button id="closeModal">Try again!</button>
+    </div>
+    <script>
+        const endings = {
+            win: {
+                title: "YOU WIN!",
+                image: "/static/assets/win.jpeg",
+                text: "Yuri kiss kiss woohoo :)",
+                color: "#7a0019"
+            },
+            lose: {
+                title: "YOU LOST!",
+                image: "/static/assets/loss.webp",
+                text: "Jennifer is going to eat u now... :(",
+                color: "#4b0000"
+            },
+            tie: {
+                title: "IT'S A TIE...",
+                image: "/static/assets/tie.jpg.webp",
+                text: "Jennifer is getting bored...",
+                color: "#5e4b53"
+            }
+        };
+        const lost = new Audio('/static/assets/downer_noise.mp3')
+        const win = new Audio('/static/assets/confetti-pop-sound.mp3')
+        const tie = new Audio('/static/assets/m-e-o-w.mp3')
+        async function startCamera(){
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const videoElement = document.getElementById('video');
+                videoElement.srcObject = stream;
+                videoElement.style.display = "block";
+                document.getElementById('capture').style.display = "inline";
+            } catch (err) {
+                console.error("Error accessing camera: ", err);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const button = document.getElementById('start');
+            button.addEventListener('click', function() {
+                console.log("Starting webcam.");
+                startCamera();
+                this.style.display = "none";
+            });
+            
+            const capture = document.getElementById('capture');
+            const canvas = document.getElementById('canvas');
+            const video = document.getElementById('video');
+            const context = canvas.getContext('2d');
+
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then ((stream) => {
+                    video.srcObject = stream;
+            })
+            .catch((err) => console.log("Error accessing webcam: ", err));
+
+            // might be redudant???
+            capture.addEventListener('click', function() {
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            });
+
+            // captures image w/ countdown
+            const countdown = document.getElementById('countdown');
+            capture.addEventListener('click', () => {
+                let count =3;
+                countdown.style.display="inline";
+                const interval = setInterval(() => {
+                    countdown.textContent = count;
+                    count--;
+
+                    if (count<0) {
+                        clearInterval(interval);
+                        countdown.textContent = "GO!";
+                        captureImage();
+                    }
+                }, 1000);
+                function captureImage() {
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const imageData = canvas.toDataURL("image/png");
+                
+                    sendToFlask(imageData);
+                }
+            });
+        });
+            
+
+        // send image to flask
+        async function sendToFlask(imageData) {
+            const response = await fetch("/predict", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ image:imageData})
+            });
+            const result = await response.json();
+            playGame(result.class);
+        }
+
+        // game
+        const choices = ["Rock", "Paper", "Scissors"];
+        function getAIChoice() {
+            return choices[Math.floor(Math.random()*3)];
+        }
+        function showEnding(type){
+            const ending = endings[type];
+            document.getElementById("endResult").textContent = ending.title;
+            document.getElementById("endImg").src = ending.image;
+            document.getElementById("endCaption").textContent = ending.text;
+            document.getElementById("modal").style.background = ending.color;
+            document.getElementById("modal")
+                .classList.remove("hidden");
+        }
+        document.getElementById("closeModal")
+        .addEventListener("click", () => {
+            document.getElementById("modal")
+                .classList.add("hidden");
+        });
+        function playGame(userChoice) {
+            const aiChoice = getAIChoice();
+            document.getElementById("choice").textContent = aiChoice;
+            document.getElementById("userChoice").textContent = userChoice;
+            let result = "";
+
+            if (userChoice === aiChoice) {
+                result = "Tie :|";
+                tie.play();
+                showEnding("tie");
+            } else if (
+                (userChoice === "Rock" && aiChoice === "Scissors") ||
+                (userChoice === "Paper" && aiChoice === "Rock") ||
+                (userChoice === "Scissors" && aiChoice === "Paper") 
+            ) {
+                result = "You Win :)";
+                confetti ( {
+                    particleCount: 150,
+                    spread:80,
+                    origin: { y: 0.6}
+                });
+                win.play();
+                showEnding("win");
+            } else {
+                result = "You lose :(";
+                lost.play();
+                showEnding("lose");
+            }
+            document.getElementById("result").textContent = result;
+        }    
+        const modal = document.getElementById('modal')
+        const modalTrigger = document.getElementById('modalTrigger')
+        // const hide = getElementById('hide')
+        // modal.addEventListener('click', function() {
+        //     if (modalTrigger.style.display === "none"){
+        //         modalTrigger.style.display = "block";
+        //         hide.textContent = "For my scissor sisters (click to hide image)"
+        //     } else {
+        //         modalTrigger.style.display = "none";
+        //         modal.textContent = "For my scissor sisters";
+        //     }
+        // });        
+    // }); 
+    </script>
+</body>
+</html>
