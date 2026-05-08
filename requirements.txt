@@ -1,5 +1,6 @@
 numpy>=1.26,<2.0
-tensorflow==2.15.*
+tensorflow==2.15.0
 pillow
 flask
-python=3.10.2
+h5py
+keras
