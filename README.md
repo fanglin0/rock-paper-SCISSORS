@@ -1,5 +1,29 @@
 # rock-paper-SCISSORS
 
+##  #HOW TO RUN
+1. Make sure you have <a href="https://www.python.org/downloads/" installed.
+2. Clone/download the repo and unzip.
+3. Open terminal and run "pip install -r requirements.txt".
+4. cd into project folder (should say something like user/rock-paper-SCISSORS" and run "python app.py"
+
+Give webcame access, and the model will recognize rock paper scissors from your webcam; capture the image, and play against you randomly.
+
+Model file: keras_model.h5
+Labels file: labels.txt
+Input image size: 224 x 224
+Built using TensorFlow + Keras
+
+Dependencies: flask, tensorflow, numpy, pillow, h5py
+
+TROUBLESHOOTING: 
+- if dependency download doesn't work, manually install 
+pip install flask
+pip install tensorflow
+pip install pillow
+pip install numpy
+pip install h5py
+- if you recieve "port already in use" error, change "app.run(port=5002)" in app.py to another number 
+
 ##  What this project is
 Experimenting with Google's teachable machine, made a Flask site inspired by Jennifer's Body.
 
